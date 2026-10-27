@@ -9,12 +9,21 @@ Apple doesn't let anything plug into the iPhone Mail app directly. This connecto
 | Tool | What it does |
 | --- | --- |
 | `list_folders` | Lists folders with total and unread counts |
-| `search_messages` | Searches a folder by sender, recipient, subject, body text, date range, unread or flagged |
-| `get_message` | Reads a full message: headers, body and attachment names (can mark it read) |
-| `send_message` | Sends mail, or a threaded reply when `reply_to_uid` is set. Saves a copy to Sent |
+| `search_messages` | Searches one folder or all folders by sender, recipient, subject, body text, date range, unread or flagged. Up to 200 results per page, with `offset` for further pages |
+| `get_message` | Reads a full message: headers, body (HTML-only mail converted to text) and a numbered attachment list. Can mark it read |
+| `get_attachment` | Opens an attachment for Claude to read: PDFs as text, images as images, and txt/csv/xml/json/html/ics as text |
+| `save_attachments` | Saves attachments to a folder on your computer (Downloads by default) without overwriting existing files |
+| `send_message` | Sends mail with an optional HTML version, files from your computer, and attachments forwarded from another email. Threaded replies with `reply_to_uid`. Saves a copy to Sent |
+| `save_draft` | Same options as `send_message`, but puts the email in Drafts for you to review and send from Thunderbird or your phone |
 | `update_flags` | Marks read/unread and flagged/unflagged |
 | `move_message` | Moves a message to another folder, such as Archive |
-| `trash_message` | Moves a message to Trash |
+| `trash_message` | Moves a message to Trash. There is no permanent delete |
+
+Scanned PDFs have no text layer. Claude will tell you to save them and open them yourself. Word, Excel and zip files can be saved but not read directly.
+
+## Updating
+
+Download the ZIP again, unzip it over your existing folder (replace the files), and double-click the setup file again. Then quit and reopen Claude Desktop.
 
 ## Quick setup (Thunderbird users)
 
