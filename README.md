@@ -19,6 +19,8 @@ Apple doesn't let anything plug into the iPhone Mail app directly. This connecto
 | `move_message` | Moves a message to another folder, such as Archive |
 | `trash_message` | Moves a message to Trash. There is no permanent delete |
 
+With several mailboxes (for example a team address and a personal one), every tool takes an `account` argument naming the mailbox's email address. Without it, the first mailbox is used. Just tell Claude which address you mean.
+
 Scanned PDFs have no text layer. Claude will tell you to save them and open them yourself. Word, Excel and zip files can be saved but not read directly.
 
 ## Two ways to run it
@@ -32,7 +34,8 @@ In always-on mode, Claude can only use files in one folder on the always-on comp
 
 ### 1. Prepare the computer
 
-- Install [Node.js](https://nodejs.org) (LTS) and [Thunderbird](https://www.thunderbird.net) with your mail account. Thunderbird is only used to read the settings.
+- Install [Node.js](https://nodejs.org) (LTS).
+- Thunderbird is optional. If it's installed, the setup copies the server settings from it. Otherwise you type the email address, login name and password. Server settings for easyApotheken, GMX, WEB.DE, T-Online, Yahoo and iCloud are filled in automatically.
 - In **Settings → System → Power**, set sleep to **Never**.
 
 ### 2. Get a secure public address with Tailscale (free)
@@ -47,8 +50,10 @@ Tailscale Funnel gives the computer a fixed address like `https://pc-name.tail12
 
 1. [Download this repository as a ZIP](https://github.com/8fpyw4gwwv-dot/Ciph/archive/refs/heads/claude/iphone-mail-connection-vjni59.zip) and unzip it somewhere permanent, such as `C:\Users\<you>\Documents\mail-connector`.
 2. Right-click `setup-always-on-windows.bat` → **Run as administrator**.
-3. Enter your email password when asked. The script checks it against your mail server.
-4. Choose a **connector password** (at least 12 characters), or press Enter to generate one. Save it in your password manager. It is what stops anyone else from connecting to your mailbox.
+3. Pick the mailbox from Thunderbird, or type its email address and **login name**. For easyApotheken the login name is the "Benutzername" on the easyWebmail access sheet (e.g. `info@nedderfeld.easyapotheken.de`), which differs from the email address.
+4. Enter the mailbox password. The script checks it against your mail server.
+5. Answer `y` to **Add another mailbox?** to connect more addresses (for example the Info address and your personal one) to the same connector.
+6. Choose a **connector password** (at least 12 characters), or press Enter to generate one. Save it in your password manager. It is what stops anyone else from connecting to your mailbox.
 
 The script saves the settings in `.env`, turns on Tailscale Funnel, installs the background task **Claude Mail Connector** (it starts with Windows and restarts itself if it stops), and checks that the address is reachable.
 
@@ -174,5 +179,7 @@ claude mcp add mail \
 | `SMTP_PORT` | no | 465 | Use 587 if your provider says so |
 | `SMTP_SECURE` | no | `true` on 465, else `false` | Port 587 upgrades to TLS with STARTTLS automatically |
 | `SAVE_SENT` | no | `true` | Saves sent mail to your Sent folder so it appears on your phone |
+
+**More mailboxes:** add the same settings with a number for mailbox 2 to 9, e.g. `MAIL2_USER`, `MAIL2_PASSWORD`, `MAIL2_FROM`, `MAIL2_IMAP_HOST`, `MAIL2_SMTP_HOST` (and optionally `MAIL2_IMAP_PORT`, `MAIL2_SMTP_PORT`, ...). The mailbox's name for Claude is the email address in `MAILn_FROM`.
 
 Your password stays in your local Claude config and is only sent to your own mail server.

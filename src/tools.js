@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { AsyncLocalStorage } from "node:async_hooks";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ImapFlow } from "imapflow";
 import nodemailer from "nodemailer";
@@ -16,14 +17,21 @@ const MAX_BODY_CHARS = 50_000;
 const MAX_ATTACHMENT_TEXT_CHARS = 100_000;
 const MAX_INLINE_IMAGE_BYTES = 5 * 1024 * 1024;
 
+// ---------- accounts ----------
+
+// The mailbox a tool call works on; set per call from its "account" argument.
+const currentAccount = new AsyncLocalStorage();
+const account = () => currentAccount.getStore();
+
 // ---------- IMAP helpers ----------
 
 async function withImap(fn) {
+  const acc = account();
   const client = new ImapFlow({
-    host: config.imap.host,
-    port: config.imap.port,
-    secure: config.imap.secure,
-    auth: { user: config.user, pass: config.password },
+    host: acc.imap.host,
+    port: acc.imap.port,
+    secure: acc.imap.secure,
+    auth: { user: acc.user, pass: acc.password },
     logger: false,
   });
   await client.connect();
@@ -157,7 +165,7 @@ const composeSchema = {
 // Builds a nodemailer message from tool arguments. Returns { mail } or { error }.
 async function prepareMail(args) {
   const mail = {
-    from: config.from,
+    from: account().from,
     to: args.to,
     cc: args.cc,
     bcc: args.bcc,
@@ -224,13 +232,27 @@ let config;
 
 export function createServer(cfg) {
   config = cfg;
-  const server = new McpServer({ name: "imap-mail", version: "1.2.0" });
+  const server = new McpServer({ name: "imap-mail", version: "1.3.0" });
+
+  // With several mailboxes every tool takes an "account" argument; the first mailbox is the default.
+  const ids = config.accounts.map((a) => a.id);
+  const accountArg =
+    ids.length > 1
+      ? { account: z.enum(ids).optional().describe(`Mailbox to use: ${ids.join(", ")}. Default: ${ids[0]}`) }
+      : {};
+  const register = (name, def, handler) =>
+    server.registerTool(name, { ...def, inputSchema: { ...def.inputSchema, ...accountArg } }, (args, extra) => {
+      const acc = config.accounts.find((a) => a.id === args.account) || config.accounts[0];
+      return currentAccount.run(acc, () => handler(args, extra));
+    });
 
 
-  server.registerTool(
+  register(
     "list_folders",
     {
-      description: "List all mail folders (Inbox, Sent, Drafts, Archive, custom folders) with message and unread counts.",
+      description:
+        "List all mail folders (Inbox, Sent, Drafts, Archive, custom folders) with message and unread counts. " +
+        "If several mailboxes are connected, pass account to choose one.",
       inputSchema: {},
       annotations: { readOnlyHint: true },
     },
@@ -248,7 +270,7 @@ export function createServer(cfg) {
       }),
   );
 
-  server.registerTool(
+  register(
     "search_messages",
     {
       description:
@@ -343,7 +365,7 @@ export function createServer(cfg) {
     },
   );
 
-  server.registerTool(
+  register(
     "get_message",
     {
       description: "Read one message in full: headers, body text and a numbered list of attachments.",
@@ -375,7 +397,7 @@ export function createServer(cfg) {
       }),
   );
 
-  server.registerTool(
+  register(
     "get_attachment",
     {
       description:
@@ -430,7 +452,7 @@ export function createServer(cfg) {
     },
   );
 
-  server.registerTool(
+  register(
     "save_attachments",
     {
       description: "Save attachments from a message to a folder on this computer. Existing files are never overwritten.",
@@ -463,7 +485,7 @@ export function createServer(cfg) {
     },
   );
 
-  server.registerTool(
+  register(
     "send_message",
     {
       description:
@@ -477,11 +499,12 @@ export function createServer(cfg) {
       const { mail, error } = await prepareMail(args);
       if (error) return text(error);
 
+      const acc = account();
       const transport = nodemailer.createTransport({
-        host: config.smtp.host,
-        port: config.smtp.port,
-        secure: config.smtp.secure,
-        auth: { user: config.user, pass: config.password },
+        host: acc.smtp.host,
+        port: acc.smtp.port,
+        secure: acc.smtp.secure,
+        auth: { user: acc.user, pass: acc.password },
       });
       const info = await transport.sendMail(mail);
 
@@ -501,7 +524,7 @@ export function createServer(cfg) {
     },
   );
 
-  server.registerTool(
+  register(
     "save_draft",
     {
       description:
@@ -523,7 +546,7 @@ export function createServer(cfg) {
     },
   );
 
-  server.registerTool(
+  register(
     "update_flags",
     {
       description: "Mark a message read/unread and/or flagged/unflagged.",
@@ -548,7 +571,7 @@ export function createServer(cfg) {
       }),
   );
 
-  server.registerTool(
+  register(
     "move_message",
     {
       description: "Move a message to another folder (e.g. Archive). Use list_folders to find folder paths.",
@@ -566,7 +589,7 @@ export function createServer(cfg) {
       }),
   );
 
-  server.registerTool(
+  register(
     "trash_message",
     {
       description: "Move a message to the Trash folder. It can be recovered from Trash until the provider empties it.",

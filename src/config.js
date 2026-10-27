@@ -16,36 +16,62 @@ function fail(message) {
   process.exit(1);
 }
 
+// Mailbox 1 uses MAIL_USER, IMAP_HOST, ...; mailbox n (2-9) uses MAILn_USER, MAILn_IMAP_HOST, ...
+function readAccount(env, n) {
+  const mail = n === 1 ? "MAIL_" : `MAIL${n}_`;
+  const server = n === 1 ? "" : `MAIL${n}_`;
+  const get = (prefix, key) => env[prefix + key];
+  if (n > 1 && !get(mail, "USER")) return null;
+
+  const missing = [[mail, "USER"], [mail, "PASSWORD"], [server, "IMAP_HOST"], [server, "SMTP_HOST"]]
+    .filter(([p, k]) => !get(p, k))
+    .map(([p, k]) => p + k);
+  if (missing.length) fail(`Missing required settings: ${missing.join(", ")}.`);
+
+  const imapSecure = bool(get(server, "IMAP_SECURE"), true);
+  const smtpPort = Number(get(server, "SMTP_PORT") || 465);
+  const from = get(mail, "FROM") || get(mail, "USER");
+  return {
+    id: (from.match(/<([^>]+)>/)?.[1] || from).trim().toLowerCase(),
+    user: get(mail, "USER"),
+    password: get(mail, "PASSWORD"),
+    from,
+    imap: {
+      host: get(server, "IMAP_HOST"),
+      port: Number(get(server, "IMAP_PORT") || (imapSecure ? 993 : 143)),
+      secure: imapSecure,
+    },
+    smtp: {
+      host: get(server, "SMTP_HOST"),
+      port: smtpPort,
+      // Port 465 uses implicit TLS; 587 starts plain and upgrades with STARTTLS.
+      secure: bool(get(server, "SMTP_SECURE"), smtpPort === 465),
+    },
+  };
+}
+
 export function loadConfig({ remote = false } = {}) {
   // Values already in the environment (e.g. from Claude Desktop's config) win over .env.
   if (fs.existsSync(envFile)) process.loadEnvFile(envFile);
   const env = process.env;
 
-  const required = ["MAIL_USER", "MAIL_PASSWORD", "IMAP_HOST", "SMTP_HOST"];
-  if (remote) required.push("PUBLIC_URL", "CONNECTOR_PASSWORD");
+  const required = remote ? ["PUBLIC_URL", "CONNECTOR_PASSWORD"] : [];
   const missing = required.filter((k) => !env[k]);
   if (missing.length) fail(`Missing required settings: ${missing.join(", ")}.`);
 
-  const imapSecure = bool(env.IMAP_SECURE, true);
-  const smtpPort = Number(env.SMTP_PORT || 465);
+  const accounts = [];
+  for (let n = 1; n <= 9; n++) {
+    const acc = readAccount(env, n);
+    if (acc) accounts.push(acc);
+  }
+  if (!accounts.length) fail("No mailbox configured (MAIL_USER, MAIL_PASSWORD, IMAP_HOST, SMTP_HOST).");
+  const ids = accounts.map((a) => a.id);
+  if (new Set(ids).size !== ids.length) fail("Two mailboxes have the same email address (MAIL_FROM).");
 
   const config = {
-    user: env.MAIL_USER,
-    password: env.MAIL_PASSWORD,
-    from: env.MAIL_FROM || env.MAIL_USER,
+    accounts,
     saveSent: bool(env.SAVE_SENT, true),
     attachmentDir: env.ATTACHMENT_DIR,
-    imap: {
-      host: env.IMAP_HOST,
-      port: Number(env.IMAP_PORT || (imapSecure ? 993 : 143)),
-      secure: imapSecure,
-    },
-    smtp: {
-      host: env.SMTP_HOST,
-      port: smtpPort,
-      // Port 465 uses implicit TLS; 587 starts plain and upgrades with STARTTLS.
-      secure: bool(env.SMTP_SECURE, smtpPort === 465),
-    },
   };
 
   if (remote) {

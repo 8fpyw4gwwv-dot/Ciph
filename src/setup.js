@@ -209,7 +209,29 @@ async function checkLogin(acc, password) {
 
 // ---------- Claude Desktop ----------
 
-function writeClaudeConfig(name, acc, password) {
+// Environment variables for the verified mailboxes: MAIL_USER, IMAP_HOST, ... for the first,
+// MAIL2_USER, MAIL2_IMAP_HOST, ... for the second, and so on.
+function accountEnv(mailboxes) {
+  const env = {};
+  mailboxes.forEach(({ acc, password }, i) => {
+    const mail = i === 0 ? "MAIL_" : `MAIL${i + 1}_`;
+    const server = i === 0 ? "" : `MAIL${i + 1}_`;
+    Object.assign(env, {
+      [`${mail}USER`]: acc.user,
+      [`${mail}PASSWORD`]: password,
+      [`${mail}FROM`]: acc.fullName ? `${acc.fullName} <${acc.email}>` : acc.email,
+      [`${server}IMAP_HOST`]: acc.imapHost,
+      [`${server}IMAP_PORT`]: String(acc.imapPort),
+      [`${server}IMAP_SECURE`]: String(acc.imapSecure),
+      [`${server}SMTP_HOST`]: acc.smtpHost,
+      [`${server}SMTP_PORT`]: String(acc.smtpPort),
+      [`${server}SMTP_SECURE`]: String(acc.smtpSecure),
+    });
+  });
+  return env;
+}
+
+function writeClaudeConfig(name, mailboxes) {
   let config = {};
   if (fs.existsSync(claudeConfigPath)) {
     config = JSON.parse(fs.readFileSync(claudeConfigPath, "utf8") || "{}");
@@ -218,21 +240,7 @@ function writeClaudeConfig(name, acc, password) {
     fs.mkdirSync(path.dirname(claudeConfigPath), { recursive: true });
   }
   config.mcpServers ||= {};
-  config.mcpServers[name] = {
-    command: process.execPath,
-    args: [serverScript],
-    env: {
-      MAIL_USER: acc.user,
-      MAIL_PASSWORD: password,
-      MAIL_FROM: acc.fullName ? `${acc.fullName} <${acc.email}>` : acc.email,
-      IMAP_HOST: acc.imapHost,
-      IMAP_PORT: String(acc.imapPort),
-      IMAP_SECURE: String(acc.imapSecure),
-      SMTP_HOST: acc.smtpHost,
-      SMTP_PORT: String(acc.smtpPort),
-      SMTP_SECURE: String(acc.smtpSecure),
-    },
-  };
+  config.mcpServers[name] = { command: process.execPath, args: [serverScript], env: accountEnv(mailboxes) };
   fs.writeFileSync(claudeConfigPath, JSON.stringify(config, null, 2));
 }
 
@@ -323,17 +331,9 @@ function envLine(key, value) {
   return `${key}=${quote}${value}${quote}`;
 }
 
-function writeEnv(acc, password, publicUrl, connectorPassword) {
+function writeEnv(mailboxes, publicUrl, connectorPassword) {
   const values = {
-    MAIL_USER: acc.user,
-    MAIL_PASSWORD: password,
-    MAIL_FROM: acc.fullName ? `${acc.fullName} <${acc.email}>` : acc.email,
-    IMAP_HOST: acc.imapHost,
-    IMAP_PORT: acc.imapPort,
-    IMAP_SECURE: acc.imapSecure,
-    SMTP_HOST: acc.smtpHost,
-    SMTP_PORT: acc.smtpPort,
-    SMTP_SECURE: acc.smtpSecure,
+    ...accountEnv(mailboxes),
     PUBLIC_URL: publicUrl,
     PORT: REMOTE_PORT,
     CONNECTOR_PASSWORD: connectorPassword,
@@ -371,10 +371,10 @@ async function waitFor(url, check, seconds) {
   return false;
 }
 
-async function setupRemote(acc, password) {
+async function setupRemote(mailboxes) {
   const publicUrl = await publicAddress();
   const connectorPassword = await askConnectorPassword();
-  writeEnv(acc, password, publicUrl, connectorPassword);
+  writeEnv(mailboxes, publicUrl, connectorPassword);
   console.log(`\nSaved settings to ${path.join(projectDir, ".env")}`);
 
   if (process.platform === "win32") {
@@ -405,59 +405,88 @@ async function setupRemote(acc, password) {
 
 // ---------- main ----------
 
+// Known providers, so only the email address, login name and password need typing.
+const PRESETS = {
+  "easyapotheken.de": {
+    imap: "mail.easyapotheken.de",
+    smtp: "mail.easyapotheken.de",
+    userHint: 'Login name = "Benutzername" on your easyWebmail access sheet, e.g. info@nedderfeld.easyapotheken.de',
+  },
+  "gmx.de": { imap: "imap.gmx.net", smtp: "mail.gmx.net" },
+  "gmx.net": { imap: "imap.gmx.net", smtp: "mail.gmx.net" },
+  "web.de": { imap: "imap.web.de", smtp: "smtp.web.de", smtpPort: 587 },
+  "t-online.de": { imap: "secureimap.t-online.de", smtp: "securesmtp.t-online.de" },
+  "yahoo.com": { imap: "imap.mail.yahoo.com", smtp: "smtp.mail.yahoo.com" },
+  "icloud.com": { imap: "imap.mail.me.com", smtp: "smtp.mail.me.com", smtpPort: 587 },
+};
+
+// "host" or "host:port" -> [host, port]
+function parseHost(input, defaultPort) {
+  const [, host, port] = input.trim().match(/^([^:\s]+)(?::(\d+))?$/) || [];
+  return [host, port ? Number(port) : defaultPort];
+}
+
 async function manualAccount() {
-  console.log("\nEnter your mail server settings (Thunderbird: Account Settings → Server Settings).");
-  const email = await ask("Email address: ");
-  const imapHost = await ask("Incoming (IMAP) server: ");
-  const smtpHost = await ask("Outgoing (SMTP) server: ");
-  const smtpPort = Number((await ask("Outgoing port [465]: ")) || 465);
-  return { email, user: email, imapHost, imapPort: 993, imapSecure: true, smtpHost, smtpPort, smtpSecure: smtpPort === 465 };
+  console.log("\nEnter your mailbox settings.");
+  let email;
+  while (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((email = await ask("Email address: ")))) console.log("That doesn't look like an email address.");
+  const domain = email.split("@")[1].toLowerCase();
+  const preset = PRESETS[domain];
+  let imapHost, imapPort = 993, smtpHost, smtpPort;
+  if (preset) {
+    ({ imap: imapHost, smtp: smtpHost, smtpPort = 465 } = preset);
+    console.log(`Server settings for ${domain}: ${imapHost} (IMAP 993), ${smtpHost} (SMTP ${smtpPort}), encrypted.`);
+  } else {
+    console.log("Enter each server as name or name:port. Default ports: IMAP 993, SMTP 465.");
+    [imapHost, imapPort] = parseHost((await ask(`Incoming (IMAP) server [mail.${domain}]: `)) || `mail.${domain}`, 993);
+    [smtpHost, smtpPort] = parseHost((await ask(`Outgoing (SMTP) server [${imapHost}]: `)) || imapHost, 465);
+  }
+  if (preset?.userHint) console.log(preset.userHint);
+  const user = (await ask(`Login name [${email}]: `)) || email;
+  return { email, user, type: "imap", imapHost, imapPort, imapSecure: imapPort === 993, smtpHost, smtpPort, smtpSecure: smtpPort === 465 };
 }
 
 async function pickAccount(accounts) {
+  if (!accounts.length) return manualAccount();
   const describe = (a) =>
-    a.manual ? "None of these, enter settings myself" : `${a.email} (${a.type === "pop3" ? `POP3 ${a.popHost}` : a.imapHost})`;
+    a.manual ? "Another mailbox, enter settings myself" : `${a.email} (${a.type === "pop3" ? `POP3 ${a.popHost}` : a.imapHost})`;
   const acc = await choose("Found these Thunderbird accounts", [...accounts, { manual: true }], describe);
-  return acc.manual ? manualAccount() : acc;
+  return acc.manual ? manualAccount() : { ...acc };
 }
 
-async function main() {
-  console.log(remote ? "Always-on mail connector setup\n" : "Mail connector setup for Claude Desktop\n");
-
-  let acc;
+// Mailboxes Thunderbird knows about on this computer (may be none).
+async function thunderbirdAccounts() {
   const profiles = findProfiles();
   let accounts = profiles.flatMap((p) => mailAccounts(readPrefs(p.prefs)));
-  if (accounts.length) {
-    acc = await pickAccount(accounts);
-  } else {
-    if (profiles.length) {
-      console.log(`Found Thunderbird (${profiles.map((p) => p.dir).join(", ")}) but no mail account in it.`);
-    } else {
-      console.log("Couldn't find Thunderbird on this computer. Looked in:");
-      for (const dir of thunderbirdBaseDirs()) console.log(`  ${dir}`);
-      console.log("\nIn Thunderbird, open Help → Troubleshooting Information. Next to \"Profile Folder\" click");
-      console.log("\"Open Folder\", copy the path from the address bar and paste it here.");
-      const dir = (await ask("Profile folder (or press Enter to type the settings yourself): ")).replace(/^"|"$/g, "");
-      if (dir) {
-        accounts = [dir, ...listDirs(dir)]
-          .map((d) => path.join(d, "prefs.js"))
-          .filter((p) => fs.existsSync(p))
-          .flatMap((p) => mailAccounts(readPrefs(p)));
-        if (!accounts.length) console.log("No mail account found in that folder.");
-      }
-    }
-    acc = accounts.length ? await pickAccount(accounts) : await manualAccount();
+  if (accounts.length) return accounts;
+  if (profiles.length) {
+    console.log(`Found Thunderbird (${profiles.map((p) => p.dir).join(", ")}) but no mail account in it.`);
+    return [];
   }
+  console.log("Thunderbird isn't installed here. That's fine: you can type the settings yourself.");
+  const dir = (await ask("Press Enter to continue, or paste a Thunderbird profile folder if it's installed somewhere unusual: ")).replace(/^"|"$/g, "");
+  if (!dir) return [];
+  accounts = [dir, ...listDirs(dir)]
+    .map((d) => path.join(d, "prefs.js"))
+    .filter((p) => fs.existsSync(p))
+    .flatMap((p) => mailAccounts(readPrefs(p)));
+  if (!accounts.length) console.log("No mail account found in that folder.");
+  return accounts;
+}
+
+// Asks for one mailbox and checks its login. Returns { acc, password }, or null if the user gives up.
+async function verifiedMailbox(found) {
+  const acc = await pickAccount(found);
   if (acc.type === "pop3") {
     console.log(`\nThunderbird gets this account over POP3. The connector needs IMAP, so it will try ${acc.imapHost}.`);
     if (!acc.leaveOnServer) {
       console.log("Warning: Thunderbird is set to delete emails from the server after downloading them.");
       console.log("Claude can only see emails still on the server. To keep them there, in Thunderbird open");
-      console.log("Account Settings → Server Settings and tick \"Leave messages on server\".");
+      console.log('Account Settings → Server Settings and tick "Leave messages on server".');
     }
   }
   if (!acc.smtpHost) acc.smtpHost = await ask("Outgoing (SMTP) server: ");
-  console.log(`\nUsing ${acc.email}`);
+  console.log(`\nUsing ${acc.email} (login: ${acc.user})`);
   console.log(`  Incoming (IMAP): ${acc.imapHost}:${acc.imapPort}  Outgoing (SMTP): ${acc.smtpHost}:${acc.smtpPort}`);
 
   for (;;) {
@@ -466,24 +495,54 @@ async function main() {
     try {
       const inbox = await checkLogin(acc, password);
       console.log(`OK. Inbox has ${inbox.messages} messages (${inbox.unseen} unread).`);
-      if (remote) {
-        await setupRemote(acc, password);
-      } else {
-        const name = "email";
-        writeClaudeConfig(name, acc, password);
-        console.log(`\nAdded "${name}" connector to ${claudeConfigPath}`);
-        console.log("Quit Claude Desktop completely and reopen it. Then ask Claude: \"Show my unread emails\".");
-      }
-      break;
+      return { acc, password };
     } catch (err) {
-      console.log(`failed: ${err.responseText || err.response || err.message}`);
+      const reason = err.responseText || err.response || err.message;
+      console.log(`failed: ${reason}`);
       if (/ENOTFOUND|ECONNREFUSED|ETIMEDOUT|EHOSTUNREACH/.test(err.code || err.message)) {
         const host = await ask(`Couldn't reach ${acc.imapHost}. Enter the correct IMAP server, optionally as server:port (or press Enter to keep it): `);
-        const [, h, port] = host.match(/^([^:\s]+)(?::(\d+))?$/) || [];
-        if (h) acc.imapHost = h;
-        if (port) Object.assign(acc, { imapPort: Number(port), imapSecure: Number(port) === 993 });
+        if (host) {
+          const [h, port] = parseHost(host, acc.imapPort);
+          if (h) Object.assign(acc, { imapHost: h, imapPort: port, imapSecure: port === 993 });
+        }
+      } else if (err.authenticationFailed || /auth|login|credential|password/i.test(reason)) {
+        console.log("The login name or password is wrong. The login name can differ from the email address.");
+        acc.user = (await ask(`Login name [${acc.user}]: `)) || acc.user;
       }
-      if ((await ask("Try again? [Y/n] ")).toLowerCase() === "n") break;
+      if ((await ask("Try again? [Y/n] ")).toLowerCase() === "n") return null;
+    }
+  }
+}
+
+async function main() {
+  console.log(remote ? "Always-on mail connector setup\n" : "Mail connector setup for Claude Desktop\n");
+
+  const found = await thunderbirdAccounts();
+  const mailboxes = [];
+  for (;;) {
+    const mailbox = await verifiedMailbox(found);
+    if (mailbox) {
+      if (mailboxes.some((m) => m.acc.email.toLowerCase() === mailbox.acc.email.toLowerCase())) {
+        console.log("That mailbox is already added.");
+      } else {
+        mailboxes.push(mailbox);
+      }
+    }
+    if (!mailboxes.length) break;
+    if ((await ask(`\nAdd another mailbox (e.g. a team or personal address)? [y/N] `)).toLowerCase() !== "y") break;
+  }
+
+  if (!mailboxes.length) {
+    console.log("No mailbox set up.");
+  } else {
+    console.log(`\nMailboxes: ${mailboxes.map((m) => m.acc.email).join(", ")}`);
+    if (remote) {
+      await setupRemote(mailboxes);
+    } else {
+      const name = "email";
+      writeClaudeConfig(name, mailboxes);
+      console.log(`\nAdded "${name}" connector to ${claudeConfigPath}`);
+      console.log('Quit Claude Desktop completely and reopen it. Then ask Claude: "Show my unread emails".');
     }
   }
   rl.close();
