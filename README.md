@@ -75,6 +75,10 @@ The connector is then available in every Claude app signed in to your account, i
 - **To sign out every device**, delete `data\auth.json` and restart the computer (or the task).
 - **To change the connector password**, run the setup again and answer `n` when asked to keep it, then delete `data\auth.json`.
 
+### If Claude won't connect
+
+Double-click `check-connector-windows.bat`. It tests each step (background service, Tailscale Funnel, public address, sign-in endpoints), says what's wrong and how to fix it, and shows the end of the log. It shows no passwords.
+
 ### Maintenance
 
 - Log: `data\connector.log`

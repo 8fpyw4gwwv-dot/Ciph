@@ -11,7 +11,8 @@
     "setup": "node src/setup.js",
     "setup-remote": "node src/setup.js --remote",
     "remote": "node src/http.js",
-    "service": "node src/service.js"
+    "service": "node src/service.js",
+    "check": "node src/check.js"
   },
   "engines": {
     "node": ">=18"

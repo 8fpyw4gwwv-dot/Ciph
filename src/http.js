@@ -19,6 +19,11 @@ const app = express();
 // The tunnel (Tailscale Funnel / Cloudflare) connects from this machine and sets X-Forwarded-For.
 app.set("trust proxy", "loopback");
 
+// Some clients look for the resource metadata without the /mcp suffix; serve the same document.
+app.get("/.well-known/oauth-protected-resource", (req, _res, next) => {
+  req.url = "/.well-known/oauth-protected-resource/mcp";
+  next();
+});
 app.use(
   mcpAuthRouter({
     provider,
