@@ -21,7 +21,67 @@ Apple doesn't let anything plug into the iPhone Mail app directly. This connecto
 
 Scanned PDFs have no text layer. Claude will tell you to save them and open them yourself. Word, Excel and zip files can be saved but not read directly.
 
-## Updating
+## Two ways to run it
+
+- **Desktop:** Claude Desktop starts the connector on your computer. It only works while that computer is on, and only in Claude Desktop there. See [Quick setup](#quick-setup-thunderbird-users).
+- **Always on:** the connector runs as a background service on a computer that never switches off. It's reachable over a secure HTTPS address and added to claude.ai as a custom connector, so it works in the browser, in Claude Desktop anywhere, and in the Claude app on your iPhone. See [Always-on setup](#always-on-setup-windows).
+
+In always-on mode, Claude can only use files in one folder on the always-on computer: the Downloads folder of the user who ran the setup. Saved attachments go there, and files to send must be put there first.
+
+## Always-on setup (Windows)
+
+### 1. Prepare the computer
+
+- Install [Node.js](https://nodejs.org) (LTS) and [Thunderbird](https://www.thunderbird.net) with your mail account. Thunderbird is only used to read the settings.
+- In **Settings → System → Power**, set sleep to **Never**.
+
+### 2. Get a secure public address with Tailscale (free)
+
+1. Install [Tailscale](https://tailscale.com/download/windows) and sign in.
+2. Right-click the Tailscale icon in the taskbar → **Preferences** → turn on **Run unattended**, so it keeps running when nobody is logged in.
+3. On first setup, Tailscale asks you to allow HTTPS and Funnel for your network. The setup script starts this and shows a link if needed. Open it and click Enable.
+
+Tailscale Funnel gives the computer a fixed address like `https://pc-name.tail1234.ts.net` without opening ports on your router.
+
+### 3. Run the setup
+
+1. [Download this repository as a ZIP](https://github.com/8fpyw4gwwv-dot/Ciph/archive/refs/heads/claude/iphone-mail-connection-vjni59.zip) and unzip it somewhere permanent, such as `C:\Users\<you>\Documents\mail-connector`.
+2. Right-click `setup-always-on-windows.bat` → **Run as administrator**.
+3. Enter your email password when asked. The script checks it against your mail server.
+4. Choose a **connector password** (at least 12 characters), or press Enter to generate one. Save it in your password manager. It is what stops anyone else from connecting to your mailbox.
+
+The script saves the settings in `.env`, turns on Tailscale Funnel, installs the background task **Claude Mail Connector** (it starts with Windows and restarts itself if it stops), and checks that the address is reachable.
+
+### 4. Add it to Claude
+
+1. On [claude.ai](https://claude.ai) go to **Settings → Connectors → Add custom connector**.
+2. Name: `Email`. URL: the address the setup printed, ending in `/mcp`.
+3. Click **Connect**. A sign-in page from your own computer opens. Enter your connector password.
+
+The connector is then available in every Claude app signed in to your account, including the iPhone app. The sign-in stays valid for 90 days of inactivity and renews automatically while in use.
+
+### Security
+
+- The connector only listens on the computer itself. Tailscale Funnel is the only way in, always over HTTPS.
+- Nobody can use it without the connector password. After 5 wrong passwords, sign-in is locked for 15 minutes. Failed attempts are logged in `data\connector.log`.
+- Only Claude (claude.ai / claude.com) and local apps can be registered as sign-in targets.
+- Claude can only attach or save files inside the Downloads folder (`FILE_ROOT` in `.env` changes it). A malicious email can't make Claude send out other files, such as `.env`. Don't put the connector folder inside Downloads; it refuses to start if you do.
+- Your mail password and connector password are stored in `.env` in the connector folder. Sign-ins are stored as hashes in `data\auth.json`.
+- **To sign out every device**, delete `data\auth.json` and restart the computer (or the task).
+- **To change the connector password**, run the setup again and answer `n` when asked to keep it, then delete `data\auth.json`.
+
+### Maintenance
+
+- Log: `data\connector.log`
+- Restart: Task Scheduler → **Claude Mail Connector** → End, then Run (or restart the computer)
+- Update: unzip the new version over the folder, then run `setup-always-on-windows.bat` as administrator again and keep your connector password
+- Remove: run `schtasks /Delete /TN "Claude Mail Connector" /F` and `tailscale funnel reset` in an administrator prompt, then delete the folder
+
+### Mac or Linux
+
+Run `npm install && npm run setup-remote`, then keep `npm run service` running, e.g. with a systemd unit (`ExecStart=/usr/bin/node /path/to/src/service.js`) or a launchd agent.
+
+## Updating (desktop mode)
 
 Download the ZIP again, unzip it over your existing folder (replace the files), and double-click the setup file again. Then quit and reopen Claude Desktop.
 

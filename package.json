@@ -1,14 +1,17 @@
 {
   "name": "imap-mail-mcp",
-  "version": "1.1.0",
-  "description": "MCP connector for any IMAP/SMTP mail account (the same accounts your iPhone Mail app uses)",
+  "version": "1.2.0",
+  "description": "MCP connector for any IMAP/SMTP mail account, for Claude Desktop or always-on for claude.ai and the Claude mobile apps",
   "type": "module",
   "bin": {
     "imap-mail-mcp": "src/index.js"
   },
   "scripts": {
     "start": "node src/index.js",
-    "setup": "node src/setup.js"
+    "setup": "node src/setup.js",
+    "setup-remote": "node src/setup.js --remote",
+    "remote": "node src/http.js",
+    "service": "node src/service.js"
   },
   "engines": {
     "node": ">=18"
@@ -16,6 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",
+    "express": "^5.3.0",
     "imapflow": "^2.9.1",
     "mailparser": "^3.12.4",
     "nodemailer": "^10.2.1",
