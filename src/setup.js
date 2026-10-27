@@ -22,11 +22,35 @@ const TASK_NAME = "Claude Mail Connector";
 const home = os.homedir();
 const appData = process.env.APPDATA || path.join(home, "AppData", "Roaming");
 
-const thunderbirdRoots = {
-  win32: [path.join(appData, "Thunderbird", "Profiles")],
-  darwin: [path.join(home, "Library", "Thunderbird", "Profiles")],
-  linux: [path.join(home, ".thunderbird"), path.join(home, "snap", "thunderbird", "common", ".thunderbird")],
-}[process.platform] || [];
+function listDirs(dir) {
+  try {
+    return fs.readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => path.join(dir, d.name));
+  } catch {
+    return [];
+  }
+}
+
+// Folders that may hold Thunderbird's profiles.ini. On Windows this covers every user on the
+// computer (running as administrator can switch to another account) and the Microsoft Store version.
+function thunderbirdBaseDirs() {
+  if (process.platform === "win32") {
+    const homes = new Set([home, ...listDirs(path.join((process.env.SystemDrive || "C:") + path.sep, "Users"))]);
+    const dirs = [path.join(appData, "Thunderbird")];
+    for (const h of homes) {
+      dirs.push(path.join(h, "AppData", "Roaming", "Thunderbird"));
+      for (const pkg of listDirs(path.join(h, "AppData", "Local", "Packages"))) {
+        if (/thunderbird/i.test(path.basename(pkg))) dirs.push(path.join(pkg, "LocalCache", "Roaming", "Thunderbird"));
+      }
+    }
+    return dirs;
+  }
+  if (process.platform === "darwin") return [path.join(home, "Library", "Thunderbird")];
+  return [
+    path.join(home, ".thunderbird"),
+    path.join(home, "snap", "thunderbird", "common", ".thunderbird"),
+    path.join(home, ".var", "app", "org.mozilla.Thunderbird", ".thunderbird"),
+  ];
+}
 
 const claudeConfigPath = {
   win32: path.join(appData, "Claude", "claude_desktop_config.json"),
@@ -62,13 +86,33 @@ async function choose(label, items, describe) {
 
 // ---------- Thunderbird ----------
 
+function profileDirs(base) {
+  const dirs = [...listDirs(path.join(base, "Profiles")), ...listDirs(base)];
+  // profiles.ini can point to profiles stored anywhere (e.g. another drive).
+  const ini = path.join(base, "profiles.ini");
+  if (fs.existsSync(ini)) {
+    let relative = true;
+    for (const line of fs.readFileSync(ini, "utf8").split(/\r?\n/)) {
+      if (line.startsWith("[")) relative = true;
+      const m = line.match(/^(IsRelative|Path)=(.*)$/);
+      if (m?.[1] === "IsRelative") relative = m[2].trim() !== "0";
+      if (m?.[1] === "Path") dirs.push(relative ? path.join(base, m[2].trim()) : m[2].trim());
+    }
+  }
+  return dirs;
+}
+
 function findProfiles() {
+  const seen = new Set();
   const profiles = [];
-  for (const root of thunderbirdRoots) {
-    if (!fs.existsSync(root)) continue;
-    for (const name of fs.readdirSync(root)) {
-      const prefs = path.join(root, name, "prefs.js");
-      if (fs.existsSync(prefs)) profiles.push({ name, prefs, mtime: fs.statSync(prefs).mtimeMs });
+  for (const base of thunderbirdBaseDirs()) {
+    for (const dir of profileDirs(base)) {
+      const prefs = path.join(dir, "prefs.js");
+      if (!fs.existsSync(prefs)) continue;
+      const key = fs.realpathSync(prefs).toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      profiles.push({ dir, prefs, mtime: fs.statSync(prefs).mtimeMs });
     }
   }
   return profiles.sort((a, b) => b.mtime - a.mtime);
@@ -87,12 +131,15 @@ function readPrefs(file) {
   return prefs;
 }
 
-function imapAccounts(prefs) {
+// Thunderbird accounts that can be reached over IMAP. POP3 accounts are included with a guessed
+// IMAP server (pop.example.com -> imap.example.com); the login check confirms the guess.
+function mailAccounts(prefs) {
   const accounts = [];
   const accountIds = String(prefs["mail.accountmanager.accounts"] || "").split(",").filter(Boolean);
   for (const id of accountIds) {
     const server = prefs[`mail.account.${id}.server`];
-    if (!server || prefs[`mail.server.${server}.type`] !== "imap") continue;
+    const type = prefs[`mail.server.${server}.type`];
+    if (!server || !["imap", "pop3"].includes(type)) continue;
 
     const s = (k) => prefs[`mail.server.${server}.${k}`];
     const identity = String(prefs[`mail.account.${id}.identities`] || "").split(",")[0];
@@ -100,21 +147,33 @@ function imapAccounts(prefs) {
     const fullName = prefs[`mail.identity.${identity}.fullName`];
     const smtpId = prefs[`mail.identity.${identity}.smtpServer`] || defaultSmtp(prefs);
     const t = (k) => prefs[`mail.smtpserver.${smtpId}.${k}`];
+    const host = s("realhostname") || s("hostname");
 
-    // Thunderbird socketType: 2 = STARTTLS, 3 = SSL/TLS. SMTP uses "try_ssl" with the same values.
-    const imapSsl = s("socketType") !== 2 && s("socketType") !== 0;
+    // Thunderbird socketType: 0 = none, 2 = STARTTLS, 3 = SSL/TLS. SMTP uses "try_ssl" with the same values.
     const smtpSsl = t("try_ssl") === 3;
-    accounts.push({
+    const account = {
       email,
       fullName,
+      type,
       user: s("userName") || email,
-      imapHost: s("realhostname") || s("hostname"),
-      imapPort: s("port") || (imapSsl ? 993 : 143),
-      imapSecure: imapSsl,
       smtpHost: t("hostname"),
       smtpPort: t("port") || (smtpSsl ? 465 : 587),
       smtpSecure: smtpSsl,
-    });
+    };
+    if (type === "imap") {
+      const imapSsl = s("socketType") !== 2 && s("socketType") !== 0;
+      Object.assign(account, { imapHost: host, imapPort: s("port") || (imapSsl ? 993 : 143), imapSecure: imapSsl });
+    } else {
+      Object.assign(account, {
+        imapHost: /^pop3?\./i.test(host) ? host.replace(/^pop3?\./i, "imap.") : host,
+        imapPort: 993,
+        imapSecure: true,
+        popHost: host,
+        // POP3 without "leave on server" deletes mail from the server after downloading it.
+        leaveOnServer: s("leave_on_server") === true,
+      });
+    }
+    accounts.push(account);
   }
   return accounts;
 }
@@ -355,21 +414,51 @@ async function manualAccount() {
   return { email, user: email, imapHost, imapPort: 993, imapSecure: true, smtpHost, smtpPort, smtpSecure: smtpPort === 465 };
 }
 
+async function pickAccount(accounts) {
+  const describe = (a) =>
+    a.manual ? "None of these, enter settings myself" : `${a.email} (${a.type === "pop3" ? `POP3 ${a.popHost}` : a.imapHost})`;
+  const acc = await choose("Found these Thunderbird accounts", [...accounts, { manual: true }], describe);
+  return acc.manual ? manualAccount() : acc;
+}
+
 async function main() {
   console.log(remote ? "Always-on mail connector setup\n" : "Mail connector setup for Claude Desktop\n");
 
   let acc;
   const profiles = findProfiles();
-  const accounts = profiles.flatMap((p) => imapAccounts(readPrefs(p.prefs)));
+  let accounts = profiles.flatMap((p) => mailAccounts(readPrefs(p.prefs)));
   if (accounts.length) {
-    acc = await choose("Found these Thunderbird accounts", accounts, (a) => `${a.email} (${a.imapHost})`);
-    console.log(`\nUsing ${acc.email}`);
-    console.log(`  Incoming: ${acc.imapHost}:${acc.imapPort}  Outgoing: ${acc.smtpHost}:${acc.smtpPort}`);
+    acc = await pickAccount(accounts);
   } else {
-    console.log("No Thunderbird IMAP account found.");
-    acc = await manualAccount();
+    if (profiles.length) {
+      console.log(`Found Thunderbird (${profiles.map((p) => p.dir).join(", ")}) but no mail account in it.`);
+    } else {
+      console.log("Couldn't find Thunderbird on this computer. Looked in:");
+      for (const dir of thunderbirdBaseDirs()) console.log(`  ${dir}`);
+      console.log("\nIn Thunderbird, open Help → Troubleshooting Information. Next to \"Profile Folder\" click");
+      console.log("\"Open Folder\", copy the path from the address bar and paste it here.");
+      const dir = (await ask("Profile folder (or press Enter to type the settings yourself): ")).replace(/^"|"$/g, "");
+      if (dir) {
+        accounts = [dir, ...listDirs(dir)]
+          .map((d) => path.join(d, "prefs.js"))
+          .filter((p) => fs.existsSync(p))
+          .flatMap((p) => mailAccounts(readPrefs(p)));
+        if (!accounts.length) console.log("No mail account found in that folder.");
+      }
+    }
+    acc = accounts.length ? await pickAccount(accounts) : await manualAccount();
+  }
+  if (acc.type === "pop3") {
+    console.log(`\nThunderbird gets this account over POP3. The connector needs IMAP, so it will try ${acc.imapHost}.`);
+    if (!acc.leaveOnServer) {
+      console.log("Warning: Thunderbird is set to delete emails from the server after downloading them.");
+      console.log("Claude can only see emails still on the server. To keep them there, in Thunderbird open");
+      console.log("Account Settings → Server Settings and tick \"Leave messages on server\".");
+    }
   }
   if (!acc.smtpHost) acc.smtpHost = await ask("Outgoing (SMTP) server: ");
+  console.log(`\nUsing ${acc.email}`);
+  console.log(`  Incoming (IMAP): ${acc.imapHost}:${acc.imapPort}  Outgoing (SMTP): ${acc.smtpHost}:${acc.smtpPort}`);
 
   for (;;) {
     const password = await askHidden(`\nPassword for ${acc.user}: `);
@@ -388,6 +477,12 @@ async function main() {
       break;
     } catch (err) {
       console.log(`failed: ${err.responseText || err.response || err.message}`);
+      if (/ENOTFOUND|ECONNREFUSED|ETIMEDOUT|EHOSTUNREACH/.test(err.code || err.message)) {
+        const host = await ask(`Couldn't reach ${acc.imapHost}. Enter the correct IMAP server, optionally as server:port (or press Enter to keep it): `);
+        const [, h, port] = host.match(/^([^:\s]+)(?::(\d+))?$/) || [];
+        if (h) acc.imapHost = h;
+        if (port) Object.assign(acc, { imapPort: Number(port), imapSecure: Number(port) === 993 });
+      }
       if ((await ask("Try again? [Y/n] ")).toLowerCase() === "n") break;
     }
   }
