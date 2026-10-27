@@ -16,7 +16,20 @@ Apple doesn't let anything plug into the iPhone Mail app directly. This connecto
 | `move_message` | Moves a message to another folder, such as Archive |
 | `trash_message` | Moves a message to Trash |
 
-## 1. Get your server settings
+## Quick setup (Thunderbird users)
+
+If your account is already set up in Thunderbird, the setup script does everything for you. It reads your server settings from Thunderbird, asks for your password, checks that the login works, and adds the connector to Claude Desktop.
+
+1. Install [Node.js](https://nodejs.org) (the LTS version).
+2. [Download this repository as a ZIP](https://github.com/8fpyw4gwwv-dot/Ciph/archive/refs/heads/claude/iphone-mail-connection-vjni59.zip) and unzip it somewhere permanent, such as your Documents folder. Claude runs the connector from there, so don't delete the folder afterwards.
+3. Double-click `setup-windows.bat` (Windows) or `setup-mac.command` (Mac). In a terminal, `npm install && npm run setup` does the same.
+4. Quit Claude Desktop completely and reopen it.
+
+If Thunderbird isn't on that computer, the script asks for the server names instead. Your previous Claude config is saved as `claude_desktop_config.json.bak`.
+
+## Manual setup
+
+### 1. Get your server settings
 
 On your iPhone, open **Settings → Apps → Mail → Mail Accounts → (your account) → Account → Advanced**. On older iOS versions it's **Settings → Mail → Accounts**. Note the incoming (IMAP) and outgoing (SMTP) server names.
 
@@ -32,7 +45,7 @@ Common providers:
 
 **Use an app password, not your normal password.** Yahoo, AOL, iCloud, Zoho and Fastmail all require one when two-factor sign-in is on. Create it in your provider's account security settings.
 
-## 2. Install
+### 2. Install
 
 Requires Node.js 18 or newer.
 
@@ -42,9 +55,9 @@ cd Ciph
 npm install
 ```
 
-## 3. Add it to Claude
+### 3. Add it to Claude
 
-### Claude Desktop
+#### Claude Desktop
 
 Edit `claude_desktop_config.json` (**Settings → Developer → Edit Config**):
 
@@ -67,7 +80,7 @@ Edit `claude_desktop_config.json` (**Settings → Developer → Edit Config**):
 
 Restart Claude Desktop.
 
-### Claude Code
+#### Claude Code
 
 ```sh
 claude mcp add mail \
