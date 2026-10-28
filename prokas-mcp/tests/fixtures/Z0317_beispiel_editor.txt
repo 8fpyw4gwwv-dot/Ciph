@@ -1,0 +1,6 @@
+easyApotheke im Nedderfeld Center – Berichtswesen
+Liste Z0317
+Berichtszeitraum: 01.10.2026 - 27.10.2026
+
+Datum	PZN	Artikelbezeichnung	PG	Preistyp	Alter Preis	Neuer Preis	Bearbeiter
+20.10.2026	10079190	Ibuprofen 400	20 St	VK	3,29	3,49	Erika Mustermann

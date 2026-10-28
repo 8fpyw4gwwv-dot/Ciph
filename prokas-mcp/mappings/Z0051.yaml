@@ -1,0 +1,49 @@
+# Spaltenzuordnung Z0051 – Verfall in 3 Monaten
+# Nur die hier genannten Spalten verlassen den Server (Allowlist).
+# Personenbezogene Spalten werden trotzdem immer entfernt (Denylist in config.yaml).
+# validated: false = noch nicht an einer echten Exportdatei geprüft.
+# Prüfen mit dem Tool validate_mapping('Z0051') oder: start_prokas_mcp.bat check
+z_code: Z0051
+title: Verfall in 3 Monaten
+category: Auslistung / Lager
+description: Artikel, die in den nächsten 3 Monaten ab heute verfallen.
+needs_period: false
+key: pzn
+validated: false
+validated_with: null
+gui_notes: ''
+columns:
+  pzn:
+    aliases: [PZN, Pharmazentralnummer, PZN8, PZN-8, Artikel-PZN, Art.-PZN]
+    type: pzn
+    required: true
+    description: Pharmazentralnummer (8-stellig)
+  bezeichnung:
+    aliases: [Artikelbezeichnung, Bezeichnung, Artikel, Artikeltext, Art.-Bezeichnung, Artikelname]
+    type: text
+  packung:
+    aliases: [Packungsgröße, Packungsgr., PG, Einheit, Inhalt, Normgröße, Menge/Einheit]
+    type: text
+  anbieter:
+    aliases: [Anbieter, Hersteller, Herst., Firma, Anbietername, Herstellername]
+    type: text
+  verfall:
+    aliases: [Verfall, Verfalldatum, Verfallsdatum, Verfall Datum, MHD, Haltbar bis, Verfalldat.]
+    type: expiry
+    required: true
+  bestand:
+    aliases: [Bestand, Lagerbestand, Ist-Bestand, Akt. Bestand, Bestand akt., Lagermenge]
+    type: number
+  menge_verfall:
+    aliases: [Menge Verfall, Verfallmenge, Anzahl Verfall, Menge]
+    type: number
+  ek:
+    aliases: [EK, Listen-EK, ListenEK, AEK, Apo-EK, Einkaufspreis, L-EK, LEK, Listen EK]
+    type: number
+    description: Listen-Einkaufspreis (netto)
+  lagerort:
+    aliases: [Lagerort, Lagerplatz, LO, Lagerortbezeichnung]
+    type: text
+  lagerwert:
+    aliases: [Lagerwert, Lagerwert EK, Lagerwert (EK), Lagerwert VEK, Wert]
+    type: number

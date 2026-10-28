@@ -1,0 +1,53 @@
+# Spaltenzuordnung Z0127 – Ladenhüter kein Verkauf seit 2 Monaten, EK ab 50 €
+# Nur die hier genannten Spalten verlassen den Server (Allowlist).
+# Personenbezogene Spalten werden trotzdem immer entfernt (Denylist in config.yaml).
+# validated: false = noch nicht an einer echten Exportdatei geprüft.
+# Prüfen mit dem Tool validate_mapping('Z0127') oder: start_prokas_mcp.bat check
+z_code: Z0127
+title: Ladenhüter kein Verkauf seit 2 Monaten, EK ab 50 €
+category: Auslistung / Lager
+description: Artikel ohne Verkauf seit über 60 Tagen (bezogen auf Berichtsdatum bis) mit Listen-EK > 50 €.
+needs_period: true
+key: pzn
+validated: false
+validated_with: null
+gui_notes: 'Fragt evtl. nach einem Lagerort: alle Lagerorte wählen bzw. leer lassen.'
+columns:
+  pzn:
+    aliases: [PZN, Pharmazentralnummer, PZN8, PZN-8, Artikel-PZN, Art.-PZN]
+    type: pzn
+    required: true
+    description: Pharmazentralnummer (8-stellig)
+  bezeichnung:
+    aliases: [Artikelbezeichnung, Bezeichnung, Artikel, Artikeltext, Art.-Bezeichnung, Artikelname]
+    type: text
+  packung:
+    aliases: [Packungsgröße, Packungsgr., PG, Einheit, Inhalt, Normgröße, Menge/Einheit]
+    type: text
+  anbieter:
+    aliases: [Anbieter, Hersteller, Herst., Firma, Anbietername, Herstellername]
+    type: text
+  lagerort:
+    aliases: [Lagerort, Lagerplatz, LO, Lagerortbezeichnung]
+    type: text
+  bestand:
+    aliases: [Bestand, Lagerbestand, Ist-Bestand, Akt. Bestand, Bestand akt., Lagermenge]
+    type: number
+  ek:
+    aliases: [EK, Listen-EK, ListenEK, AEK, Apo-EK, Einkaufspreis, L-EK, LEK, Listen EK]
+    type: number
+    description: Listen-Einkaufspreis (netto)
+  vk:
+    aliases: [VK, Verkaufspreis, AVK, Eigener VK, eig. VK, Eig. VK, VK-Preis, Apo-VK, Listen-VK]
+    type: number
+    description: Verkaufspreis brutto
+  letzter_verkauf:
+    aliases: [Letzter Verkauf, Letzter VK, Letztes Verkaufsdatum, Letzte Abgabe, Letztes Abverkaufsdatum, Lt. Verkauf,
+      Letzter Abverkauf]
+    type: date
+  letzter_we:
+    aliases: [Letzter WE, Letzter Wareneingang, Letztes WE-Datum, Letzter Eingang]
+    type: date
+  lagerwert:
+    aliases: [Lagerwert, Lagerwert EK, Lagerwert (EK), Lagerwert VEK, Wert]
+    type: number

@@ -1,0 +1,7 @@
+easyApotheke im Nedderfeld Center – Berichtswesen
+Liste Z0327
+Berichtszeitraum: 01.10.2026 - 27.10.2026
+
+PZN	Artikelbezeichnung	PG	Anbieter	Bestand	Listen-EK	VEK	VK	Lagerort
+10554337	Rezeptur Basis	100 g	Apotheke	2	0,00	0,00	5,00	Labor
+10712718	Muster ohne EK	1 St	Muster	0			1,00	Lager

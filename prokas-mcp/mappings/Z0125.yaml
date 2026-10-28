@@ -1,0 +1,56 @@
+# Spaltenzuordnung Z0125 – Spannenkiller in der Freiwahl < 20%
+# Nur die hier genannten Spalten verlassen den Server (Allowlist).
+# Personenbezogene Spalten werden trotzdem immer entfernt (Denylist in config.yaml).
+# validated: false = noch nicht an einer echten Exportdatei geprüft.
+# Prüfen mit dem Tool validate_mapping('Z0125') oder: start_prokas_mcp.bat check
+z_code: Z0125
+title: Spannenkiller in der Freiwahl < 20%
+category: Controlling Preise
+description: Artikel mit eigenem VK und Spanne < 20 % an Freiwahl-Lagerorten.
+needs_period: false
+key: pzn
+validated: false
+validated_with: null
+gui_notes: ''
+columns:
+  pzn:
+    aliases: [PZN, Pharmazentralnummer, PZN8, PZN-8, Artikel-PZN, Art.-PZN]
+    type: pzn
+    required: true
+    description: Pharmazentralnummer (8-stellig)
+  bezeichnung:
+    aliases: [Artikelbezeichnung, Bezeichnung, Artikel, Artikeltext, Art.-Bezeichnung, Artikelname]
+    type: text
+  packung:
+    aliases: [Packungsgröße, Packungsgr., PG, Einheit, Inhalt, Normgröße, Menge/Einheit]
+    type: text
+  anbieter:
+    aliases: [Anbieter, Hersteller, Herst., Firma, Anbietername, Herstellername]
+    type: text
+  lagerort:
+    aliases: [Lagerort, Lagerplatz, LO, Lagerortbezeichnung]
+    type: text
+  bestand:
+    aliases: [Bestand, Lagerbestand, Ist-Bestand, Akt. Bestand, Bestand akt., Lagermenge]
+    type: number
+  ek:
+    aliases: [EK, Listen-EK, ListenEK, AEK, Apo-EK, Einkaufspreis, L-EK, LEK, Listen EK]
+    type: number
+    description: Listen-Einkaufspreis (netto)
+  vk:
+    aliases: [VK, Verkaufspreis, AVK, Eigener VK, eig. VK, Eig. VK, VK-Preis, Apo-VK, Listen-VK]
+    type: number
+    description: Verkaufspreis brutto
+  spanne:
+    aliases: [Spanne, Spanne %, Spanne in %, Spanne%, Marge, Marge %, Kalk.-Spanne, Spanne (%)]
+    type: percent
+  mwst:
+    aliases: [MwSt, MwSt %, MwSt-Satz, MwSt., USt, MWST]
+    type: percent
+  amo:
+    aliases: [AMO, Abgabemenge Monat, Mon.-Abgabe, Ø Abgabe/Monat]
+    type: number
+    description: durchschnittliche Abgabemenge pro Monat
+  rx:
+    aliases: [Rezeptpflicht, Rp, Rx, Abgabebestimmung, Verschreibungspflicht]
+    type: text

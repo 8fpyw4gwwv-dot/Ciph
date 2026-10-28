@@ -1,0 +1,33 @@
+# Spaltenzuordnung Z0245 – Defektquote / Lieferfähigkeit
+# Nur die hier genannten Spalten verlassen den Server (Allowlist).
+# Personenbezogene Spalten werden trotzdem immer entfernt (Denylist in config.yaml).
+# validated: false = noch nicht an einer echten Exportdatei geprüft.
+# Prüfen mit dem Tool validate_mapping('Z0245') oder: start_prokas_mcp.bat check
+z_code: Z0245
+title: Defektquote / Lieferfähigkeit
+category: Controlling Lager
+description: Defektquote = Nachfragen ÷ Gesamtabgaben im Berichtszeitraum.
+needs_period: true
+key: null
+validated: false
+validated_with: null
+gui_notes: ''
+columns:
+  bereich:
+    aliases: [Monat, Zeitraum, Bereich, Gruppe, Lagerort, Woche]
+    type: text
+  datum:
+    aliases: [Datum, Nachfragedatum, Tag]
+    type: date
+  nachfragen:
+    aliases: [Nachfragen, Anzahl Nachfragen, Defekte, Nachfragen gesamt, Summe Nachfragen]
+    type: number
+  abgaben:
+    aliases: [Abgaben, Gesamtabgaben, Abgaben gesamt, Packungen, Summe Abgaben]
+    type: number
+  defektquote:
+    aliases: [Defektquote, Defektquote %, Defektquote in %, Quote, Defektquote (%)]
+    type: percent
+  lieferfaehigkeit:
+    aliases: [Lieferfähigkeit, Lieferfähigkeit %, Lieferfähigkeit in %, Lieferfähigkeit (%)]
+    type: percent

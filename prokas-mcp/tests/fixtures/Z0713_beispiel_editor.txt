@@ -1,0 +1,6 @@
+easyApotheke im Nedderfeld Center – Berichtswesen
+Liste Z0713
+Berichtszeitraum: 01.10.2026 - 27.10.2026
+
+PZN	Artikelbezeichnung	PG	Anbieter	Bestand	AMO	MB	Listen-EK	VK	Lagerort	Status
+10079190	Ibuprofen 400 Filmtabl.	20 St	Hexal	0	8	4	2,50	3,49	Sichtwahl	rot

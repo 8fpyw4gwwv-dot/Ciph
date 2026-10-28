@@ -1,0 +1,6 @@
+easyApotheke im Nedderfeld Center – Berichtswesen
+Liste Z0714
+Berichtszeitraum: 01.10.2026 - 27.10.2026
+
+PZN	Artikelbezeichnung	PG	Anbieter	Bestand	AMO	MB	Listen-EK	VK	Lagerort	Status	Ab
+10158386	Nasenspray 0,1%	10 ml	Ratiopharm	1	4	2	2,10	2,95	Freiwahl	gelb	01.11.2026

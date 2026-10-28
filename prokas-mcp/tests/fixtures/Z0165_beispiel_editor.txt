@@ -1,0 +1,8 @@
+easyApotheke im Nedderfeld Center – Berichtswesen
+Liste Z0165
+Berichtszeitraum: 01.10.2026 - 27.10.2026
+
+Status	Umsatz	Rohertrag	Spanne %	Abgaben	Umsatz VJ
+Rx	45.000,00	9.000,00	20,0	1.500	42.000,00
+OTC	30.000,00	11.000,00	36,7	3.800	29.000,00
+Summe					

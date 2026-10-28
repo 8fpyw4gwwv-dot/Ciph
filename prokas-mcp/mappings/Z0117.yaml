@@ -1,0 +1,48 @@
+# Spaltenzuordnung Z0117 – Inventurprüfliste falsche VEK
+# Nur die hier genannten Spalten verlassen den Server (Allowlist).
+# Personenbezogene Spalten werden trotzdem immer entfernt (Denylist in config.yaml).
+# validated: false = noch nicht an einer echten Exportdatei geprüft.
+# Prüfen mit dem Tool validate_mapping('Z0117') oder: start_prokas_mcp.bat check
+z_code: Z0117
+title: Inventurprüfliste falsche VEK
+category: IKS
+description: Artikel, deren Verrechnungs-EK nicht zum bereinigten VEK / Preishistorie passt.
+needs_period: false
+key: pzn
+validated: false
+validated_with: null
+gui_notes: ''
+columns:
+  pzn:
+    aliases: [PZN, Pharmazentralnummer, PZN8, PZN-8, Artikel-PZN, Art.-PZN]
+    type: pzn
+    required: true
+    description: Pharmazentralnummer (8-stellig)
+  bezeichnung:
+    aliases: [Artikelbezeichnung, Bezeichnung, Artikel, Artikeltext, Art.-Bezeichnung, Artikelname]
+    type: text
+  packung:
+    aliases: [Packungsgröße, Packungsgr., PG, Einheit, Inhalt, Normgröße, Menge/Einheit]
+    type: text
+  anbieter:
+    aliases: [Anbieter, Hersteller, Herst., Firma, Anbietername, Herstellername]
+    type: text
+  bestand:
+    aliases: [Bestand, Lagerbestand, Ist-Bestand, Akt. Bestand, Bestand akt., Lagermenge]
+    type: number
+  ek:
+    aliases: [EK, Listen-EK, ListenEK, AEK, Apo-EK, Einkaufspreis, L-EK, LEK, Listen EK]
+    type: number
+    description: Listen-Einkaufspreis (netto)
+  vek:
+    aliases: [VEK, Verrechnungs-EK, Verr.-EK, Verrechnungs EK, Verrechnungseinkaufspreis]
+    type: number
+  vek_bereinigt:
+    aliases: [Bereinigter VEK, VEK bereinigt, Ber. VEK, bereinigter Verrechnungs-EK]
+    type: number
+  vek_historie:
+    aliases: [VEK Historie, VEK Preishistorie, VEK aus Preishistorie]
+    type: number
+  lagerwert:
+    aliases: [Lagerwert, Lagerwert EK, Lagerwert (EK), Lagerwert VEK, Wert]
+    type: number

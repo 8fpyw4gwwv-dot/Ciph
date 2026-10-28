@@ -1,0 +1,48 @@
+# Spaltenzuordnung Z0207 – Retourenerinnerung
+# Nur die hier genannten Spalten verlassen den Server (Allowlist).
+# Personenbezogene Spalten werden trotzdem immer entfernt (Denylist in config.yaml).
+# validated: false = noch nicht an einer echten Exportdatei geprüft.
+# Prüfen mit dem Tool validate_mapping('Z0207') oder: start_prokas_mcp.bat check
+z_code: Z0207
+title: Retourenerinnerung
+category: Kontrolle Retourenabrechnung / Großhändler
+description: Offene Retouren an den ausgewählten Lieferanten, zusammengefasst pro Artikel.
+needs_period: false
+key: pzn
+validated: false
+validated_with: null
+gui_notes: 'Fragt nach dem Lieferanten: wenn möglich alle wählen, sonst den im Auftrag genannten. Unklar → Screenshot,
+  abbrechen, melden.'
+columns:
+  lieferant:
+    aliases: [Lieferant, Großhändler, Grosshändler, Großhandel, Lft., GH, Lieferantenname]
+    type: text
+  pzn:
+    aliases: [PZN, Pharmazentralnummer, PZN8, PZN-8, Artikel-PZN, Art.-PZN]
+    type: pzn
+    required: true
+    description: Pharmazentralnummer (8-stellig)
+  bezeichnung:
+    aliases: [Artikelbezeichnung, Bezeichnung, Artikel, Artikeltext, Art.-Bezeichnung, Artikelname]
+    type: text
+  packung:
+    aliases: [Packungsgröße, Packungsgr., PG, Einheit, Inhalt, Normgröße, Menge/Einheit]
+    type: text
+  anbieter:
+    aliases: [Anbieter, Hersteller, Herst., Firma, Anbietername, Herstellername]
+    type: text
+  menge:
+    aliases: [Menge, Retourenmenge, Anzahl, Stück]
+    type: number
+  retoure_datum:
+    aliases: [Datum, Retourendatum, Retoure vom, Retourdatum]
+    type: date
+  wert:
+    aliases: [Wert, Retourenwert, Betrag, EK-Wert, Gutschrift erwartet]
+    type: number
+  grund:
+    aliases: [Grund, Retourengrund]
+    type: text
+  status:
+    aliases: [Status, Retourenstatus]
+    type: text

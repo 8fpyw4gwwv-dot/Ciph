@@ -1,0 +1,6 @@
+easyApotheke im Nedderfeld Center – Berichtswesen
+Liste Z0117
+Berichtszeitraum: 01.10.2026 - 27.10.2026
+
+PZN	Artikelbezeichnung	PG	Bestand	Listen-EK	VEK	Bereinigter VEK	Lagerwert
+10633522	Salbe	50 g	3	6,00	6,50	6,00	19,50

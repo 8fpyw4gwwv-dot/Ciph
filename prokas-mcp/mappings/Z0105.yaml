@@ -1,0 +1,34 @@
+# Spaltenzuordnung Z0105 – Lagerumschlag nach Lagerorten
+# Nur die hier genannten Spalten verlassen den Server (Allowlist).
+# Personenbezogene Spalten werden trotzdem immer entfernt (Denylist in config.yaml).
+# validated: false = noch nicht an einer echten Exportdatei geprüft.
+# Prüfen mit dem Tool validate_mapping('Z0105') oder: start_prokas_mcp.bat check
+z_code: Z0105
+title: Lagerumschlag nach Lagerorten
+category: Controlling Lager
+description: Lagerumschlagsgeschwindigkeit pro Lagerort (aufs Jahr hochgerechnet).
+needs_period: true
+key: lagerort
+validated: false
+validated_with: null
+gui_notes: ''
+columns:
+  lagerort:
+    aliases: [Lagerort, Lagerplatz, LO, Lagerortbezeichnung]
+    type: text
+    required: true
+  lagerwert:
+    aliases: [Lagerwert, Lagerwert EK, Lagerwert (EK), Lagerwert VEK, Wert]
+    type: number
+  abgaben_ek:
+    aliases: [Abgaben EK, Wareneinsatz, Abgabewert EK, Umsatz EK, Abgaben zu EK]
+    type: number
+  lagerumschlag:
+    aliases: [Lagerumschlag, Umschlag, Umschlagshäufigkeit, LU, Lagerumschlag p.a.]
+    type: number
+  lagerdauer:
+    aliases: [Lagerdauer, Reichweite, Lagerdauer Tage, Lagerdauer in Tagen]
+    type: number
+  artikel_anzahl:
+    aliases: [Artikel, Anzahl Artikel, Artikelanzahl]
+    type: number

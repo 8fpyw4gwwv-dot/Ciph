@@ -1,0 +1,37 @@
+# Spaltenzuordnung Z0003 – Erlösgruppenstatistik
+# Nur die hier genannten Spalten verlassen den Server (Allowlist).
+# Personenbezogene Spalten werden trotzdem immer entfernt (Denylist in config.yaml).
+# validated: false = noch nicht an einer echten Exportdatei geprüft.
+# Prüfen mit dem Tool validate_mapping('Z0003') oder: start_prokas_mcp.bat check
+z_code: Z0003
+title: Erlösgruppenstatistik
+category: Controlling Umsatz
+description: Umsatz und Rohertrag je Erlösgruppe im Berichtszeitraum.
+needs_period: true
+key: erloesgruppe
+validated: false
+validated_with: null
+gui_notes: ''
+columns:
+  erloesgruppe:
+    aliases: [Erlösgruppe, Erlösgr., Erloesgruppe, Warengruppe, Gruppe]
+    type: text
+    required: true
+  umsatz:
+    aliases: [Umsatz, Umsatz netto, Netto-Umsatz, Umsatz (netto), Nettoumsatz, Erlös, Erlöse, Umsatz Netto]
+    type: number
+  umsatz_brutto:
+    aliases: [Umsatz brutto, Brutto-Umsatz, Bruttoumsatz, Umsatz (brutto)]
+    type: number
+  rohertrag:
+    aliases: [Rohertrag, RE, Rohgewinn, Ertrag, Rohertrag EUR, Rohertrag netto]
+    type: number
+  spanne:
+    aliases: [Spanne, Spanne %, Spanne in %, Spanne%, Marge, Marge %, Kalk.-Spanne, Spanne (%)]
+    type: percent
+  abgaben:
+    aliases: [Abgaben, Packungen, Anzahl Packungen, Anz. Packungen, Abgabemenge, Absatz]
+    type: number
+  anteil:
+    aliases: [Anteil, Anteil %, Umsatzanteil, Anteil in %]
+    type: percent

@@ -1,5 +1,7 @@
 # IMAP Mail connector for Claude
 
+> This repository also contains **[prokas-mcp](prokas-mcp/README.md)**, a separate read-only connector for the PROKAS7 Berichtswesen (pharmacy merchandise management), documented in German.
+
 An MCP server that lets Claude read, search, send and organize mail for any IMAP/SMTP account, such as Yahoo, a custom domain or your ISP's mail. It connects to the same mail server your iPhone Mail app uses, so changes show up on your phone as soon as it syncs.
 
 Apple doesn't let anything plug into the iPhone Mail app directly. This connector talks to your mail provider instead.

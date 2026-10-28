@@ -1,0 +1,9 @@
+easyApotheke im Nedderfeld Center – Berichtswesen
+Liste Z0015
+Berichtszeitraum: 01.10.2026 - 27.10.2026
+
+Datum	PZN	Artikelbezeichnung	Packungsgröße	Anbieter	Menge	Art	Kunde	Bearbeiter
+20.10.2026	10079190	Ibuprofen 400 Filmtabl.	20 St	Hexal	2	Bestellung	Erika Mustermann	MA1
+21.10.2026	10079190	Ibuprofen 400 Filmtabl.	20 St	Hexal	1	Neinverkauf	Erika Mustermann	MA2
+22.10.2026	10158386	Nasenspray 0,1%	10 ml	Ratiopharm	3	Neinverkauf		MA1
+23.10.2026	10237571	Vitamin D3 1000 IE	100 St	Dr. Muster	1	Bestellung	Erika Mustermann	MA3

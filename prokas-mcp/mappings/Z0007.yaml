@@ -1,0 +1,34 @@
+# Spaltenzuordnung Z0007 – Einkaufsübersicht Großhandel
+# Nur die hier genannten Spalten verlassen den Server (Allowlist).
+# Personenbezogene Spalten werden trotzdem immer entfernt (Denylist in config.yaml).
+# validated: false = noch nicht an einer echten Exportdatei geprüft.
+# Prüfen mit dem Tool validate_mapping('Z0007') oder: start_prokas_mcp.bat check
+z_code: Z0007
+title: Einkaufsübersicht Großhandel
+category: Großhandelkonditionen
+description: Einkäufe je Großhändler im Berichtszeitraum.
+needs_period: true
+key: lieferant
+validated: false
+validated_with: null
+gui_notes: ''
+columns:
+  lieferant:
+    aliases: [Lieferant, Großhändler, Grosshändler, Großhandel, Lft., GH, Lieferantenname]
+    type: text
+    required: true
+  einkauf:
+    aliases: [Einkauf, Einkaufswert, EK-Summe, Einkaufssumme, Warenwert, Einkauf EK]
+    type: number
+  positionen:
+    aliases: [Positionen, Pos., Anzahl Positionen]
+    type: number
+  packungen:
+    aliases: [Packungen, Menge, Stück, Anzahl Packungen]
+    type: number
+  rabatt:
+    aliases: [Rabatt, Rabatt %, Rabatt EUR, Rabatt in %]
+    type: number
+  anteil:
+    aliases: [Anteil, Anteil %, Umsatzanteil, Anteil in %]
+    type: percent

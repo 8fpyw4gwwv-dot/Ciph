@@ -1,0 +1,46 @@
+# Spaltenzuordnung Z0317 – Preis im Berichtszeitraum geändert
+# Nur die hier genannten Spalten verlassen den Server (Allowlist).
+# Personenbezogene Spalten werden trotzdem immer entfernt (Denylist in config.yaml).
+# validated: false = noch nicht an einer echten Exportdatei geprüft.
+# Prüfen mit dem Tool validate_mapping('Z0317') oder: start_prokas_mcp.bat check
+z_code: Z0317
+title: Preis im Berichtszeitraum geändert
+category: Mitarbeiterkontrolle / Prüflisten
+description: Jede Preisänderung (PreisTyp) im Berichtszeitraum, alter Preis aus der Preishistorie.
+needs_period: true
+key: pzn
+validated: false
+validated_with: null
+gui_notes: ''
+columns:
+  datum:
+    aliases: [Datum, Änderungsdatum, Geändert am, Änderung am]
+    type: date
+  pzn:
+    aliases: [PZN, Pharmazentralnummer, PZN8, PZN-8, Artikel-PZN, Art.-PZN]
+    type: pzn
+    required: true
+    description: Pharmazentralnummer (8-stellig)
+  bezeichnung:
+    aliases: [Artikelbezeichnung, Bezeichnung, Artikel, Artikeltext, Art.-Bezeichnung, Artikelname]
+    type: text
+  packung:
+    aliases: [Packungsgröße, Packungsgr., PG, Einheit, Inhalt, Normgröße, Menge/Einheit]
+    type: text
+  preistyp:
+    aliases: [Preistyp, PreisTyp, Preisart]
+    type: text
+  preis_alt:
+    aliases: [Alter Preis, Preis alt, alt]
+    type: number
+  preis_neu:
+    aliases: [Neuer Preis, Preis neu, Aktueller Preis, neu]
+    type: number
+  ek:
+    aliases: [EK, Listen-EK, ListenEK, AEK, Apo-EK, Einkaufspreis, L-EK, LEK, Listen EK]
+    type: number
+    description: Listen-Einkaufspreis (netto)
+  vk:
+    aliases: [VK, Verkaufspreis, AVK, Eigener VK, eig. VK, Eig. VK, VK-Preis, Apo-VK, Listen-VK]
+    type: number
+    description: Verkaufspreis brutto

@@ -1,0 +1,46 @@
+# Spaltenzuordnung Z0134 – 8er Artikel mit falscher EK-Preispflege
+# Nur die hier genannten Spalten verlassen den Server (Allowlist).
+# Personenbezogene Spalten werden trotzdem immer entfernt (Denylist in config.yaml).
+# validated: false = noch nicht an einer echten Exportdatei geprüft.
+# Prüfen mit dem Tool validate_mapping('Z0134') oder: start_prokas_mcp.bat check
+z_code: Z0134
+title: 8er Artikel mit falscher EK-Preispflege
+category: Preiskontrolle / Prüflisten
+description: Artikel mit PZN 8000000–8399999 und Kennzeichen eigener Listen-EK = N.
+needs_period: false
+key: pzn
+validated: false
+validated_with: null
+gui_notes: ''
+columns:
+  pzn:
+    aliases: [PZN, Pharmazentralnummer, PZN8, PZN-8, Artikel-PZN, Art.-PZN]
+    type: pzn
+    required: true
+    description: Pharmazentralnummer (8-stellig)
+  bezeichnung:
+    aliases: [Artikelbezeichnung, Bezeichnung, Artikel, Artikeltext, Art.-Bezeichnung, Artikelname]
+    type: text
+  packung:
+    aliases: [Packungsgröße, Packungsgr., PG, Einheit, Inhalt, Normgröße, Menge/Einheit]
+    type: text
+  anbieter:
+    aliases: [Anbieter, Hersteller, Herst., Firma, Anbietername, Herstellername]
+    type: text
+  bestand:
+    aliases: [Bestand, Lagerbestand, Ist-Bestand, Akt. Bestand, Bestand akt., Lagermenge]
+    type: number
+  ek:
+    aliases: [EK, Listen-EK, ListenEK, AEK, Apo-EK, Einkaufspreis, L-EK, LEK, Listen EK]
+    type: number
+    description: Listen-Einkaufspreis (netto)
+  vek:
+    aliases: [VEK, Verrechnungs-EK, Verr.-EK, Verrechnungs EK, Verrechnungseinkaufspreis]
+    type: number
+  vk:
+    aliases: [VK, Verkaufspreis, AVK, Eigener VK, eig. VK, Eig. VK, VK-Preis, Apo-VK, Listen-VK]
+    type: number
+    description: Verkaufspreis brutto
+  eigener_ek:
+    aliases: [Eigener Listen-EK, Kz. eig. EK, Eig. EK, Eigener EK]
+    type: text

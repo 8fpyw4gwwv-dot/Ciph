@@ -1,0 +1,9 @@
+easyApotheke im Nedderfeld Center – Berichtswesen
+Liste Z0125
+Berichtszeitraum: 01.10.2026 - 27.10.2026
+
+PZN	Artikelbezeichnung	Packungsgröße	Anbieter	Lagerort	Bestand	Listen-EK	Eigener VK	Spanne %	MwSt %	AMO	Rezeptpflicht
+10079190	Ibuprofen 400 Filmtabl.	20 St	Hexal	Freiwahl	12	2,50	3,49	14,8	19	8	nein
+10158386	Nasenspray 0,1%	10 ml	Ratiopharm	Freiwahl	5	2,10	2,95		19	4	nein
+10712718	Pflaster	10 St	Hansaplast	Freiwahl	20	1,80	2,49	14,0	19	6	
+10791907	Rx-Test	20 St	Muster	Freiwahl	1	10,00	11,00		19	1	Rx

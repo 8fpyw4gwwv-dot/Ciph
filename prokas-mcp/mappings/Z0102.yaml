@@ -1,0 +1,44 @@
+# Spaltenzuordnung Z0102 – Lagerwertverluste bei Preisermäßigung
+# Nur die hier genannten Spalten verlassen den Server (Allowlist).
+# Personenbezogene Spalten werden trotzdem immer entfernt (Denylist in config.yaml).
+# validated: false = noch nicht an einer echten Exportdatei geprüft.
+# Prüfen mit dem Tool validate_mapping('Z0102') oder: start_prokas_mcp.bat check
+z_code: Z0102
+title: Lagerwertverluste bei Preisermäßigung
+category: Lagerwertverluste / Hersteller
+description: Inventurwertermäßigung durch EK-Senkungen im Berichtszeitraum, nach Hersteller.
+needs_period: true
+key: pzn
+validated: false
+validated_with: null
+gui_notes: ''
+columns:
+  anbieter:
+    aliases: [Anbieter, Hersteller, Herst., Firma, Anbietername, Herstellername]
+    type: text
+  pzn:
+    aliases: [PZN, Pharmazentralnummer, PZN8, PZN-8, Artikel-PZN, Art.-PZN]
+    type: pzn
+    required: true
+    description: Pharmazentralnummer (8-stellig)
+  bezeichnung:
+    aliases: [Artikelbezeichnung, Bezeichnung, Artikel, Artikeltext, Art.-Bezeichnung, Artikelname]
+    type: text
+  packung:
+    aliases: [Packungsgröße, Packungsgr., PG, Einheit, Inhalt, Normgröße, Menge/Einheit]
+    type: text
+  bestand:
+    aliases: [Bestand, Lagerbestand, Ist-Bestand, Akt. Bestand, Bestand akt., Lagermenge]
+    type: number
+  ek_alt:
+    aliases: [EK alt, Alter EK, EK vorher, Listen-EK alt]
+    type: number
+  ek_neu:
+    aliases: [EK neu, Neuer EK, Listen-EK neu]
+    type: number
+  gueltig_ab:
+    aliases: [Gültig ab, Gültigkeit, Gültigkeitsdatum, Gültig von]
+    type: date
+  verlust:
+    aliases: [Verlust, Lagerwertverlust, Wertminderung, Differenz, Inventurwertermäßigung]
+    type: number

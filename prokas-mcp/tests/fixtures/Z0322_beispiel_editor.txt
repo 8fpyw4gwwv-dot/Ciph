@@ -1,0 +1,6 @@
+easyApotheke im Nedderfeld Center – Berichtswesen
+Liste Z0322
+Berichtszeitraum: 01.10.2026 - 27.10.2026
+
+PZN	Artikelbezeichnung	PG	Bestand	Listen-EK	VEK	Lagerwert	Lagerort
+10395956	Insulin Pen	5x3 ml	8	80,00	79,00	640,00	Kühlschrank

@@ -1,0 +1,6 @@
+easyApotheke im Nedderfeld Center – Berichtswesen
+Liste Z0102
+Berichtszeitraum: 01.10.2026 - 27.10.2026
+
+Hersteller	PZN	Bezeichnung	Bestand	EK alt	EK neu	Gültig ab	Verlust
+Hexal	10079190	Ibuprofen 400	10	3,00	2,50	15.10.2026	5,00

@@ -1,0 +1,9 @@
+easyApotheke im Nedderfeld Center – Berichtswesen
+Liste Z0127
+Berichtszeitraum: 01.10.2026 - 27.10.2026
+
+PZN	Artikelbezeichnung	Packungsgröße	Anbieter	Lagerort	Bestand	Listen-EK	VK	Letzter Verkauf	Letzter WE	Lagerwert
+10395956	Insulin Pen	5x3 ml	Novo	Kühlschrank	2	80,00	120,00	01.07.2026	01.05.2026	160,00
+10871090	Kompressionsstrumpf	1 Paar	Medi	Lager	3	55,00	89,00	15.08.2026	01.03.2026	165,00
+10237571	Spezialnahrung	500 g	Nutricia	Lager	1	60,00	79,00		01.01.2026	60,00
+Summe										

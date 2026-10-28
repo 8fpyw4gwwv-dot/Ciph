@@ -1,0 +1,7 @@
+easyApotheke im Nedderfeld Center – Berichtswesen
+Liste Z0585
+Berichtszeitraum: 01.10.2026 - 27.10.2026
+
+PZN	Artikelbezeichnung	PG	Anbieter	EK	VK	Spanne	MwSt	Abgaben	Umsatz	Rohertrag
+10158386	Nasenspray 0,1%	10 ml	Ratiopharm	2,10	2,95		19	40	99,16	15,16
+10871090	Kompressionsstrumpf	1 Paar	Medi	55,00	89,00	26,5	19	2	149,58	39,58

@@ -1,0 +1,100 @@
+# PROKAS-MCP – Konfiguration
+# Änderungen werden beim nächsten Start des Connectors wirksam
+# (Claude Desktop beenden und neu öffnen).
+
+# --- Ordner -----------------------------------------------------------------
+# Hier speichert Berichtswesen (Excel / Export in Editor / Nachtjob) die Listen.
+export_dir: 'P:\Claude\Exporte'
+# Nur hier legt der Connector Vorschläge ab (Preisdateien, Bestelllisten).
+outbox_dir: 'P:\Claude\Outbox'
+# Aufträge (Jobs), Sperrdatei und cli_status.json.
+jobs_dir: 'P:\Claude\Jobs'
+# Audit-Log (JSONL) – nie mit Listeninhalten.
+log_dir: 'P:\Claude\Logs'
+
+# Berichtswesen-Installation. "auto" = automatisch suchen (P:\BW\, PROKAS-Programmordner).
+bw_install_dir: auto
+# Ordner, in denen probe_cli nach Startdateien sucht (nur lesend).
+prokas_search_dirs:
+  - 'P:\BW'
+  - 'P:\PROKAS'
+  - 'P:\PRG'
+  - 'C:\PROKAS7'
+  - 'C:\Program Files (x86)\PROKAS7'
+  - 'C:\Program Files (x86)\awinta'
+  - 'C:\Program Files\awinta'
+  - 'C:\Users\Public\Desktop'
+
+# --- Erlaubte Listen -------------------------------------------------------
+# Nur diese Z-Listen dürfen erzeugt werden. Alles andere wird abgelehnt.
+allowed_z_codes: [Z0003, Z0007, Z0015, Z0016, Z0051, Z0102, Z0105, Z0117, Z0125, Z0127,
+                  Z0134, Z0165, Z0207, Z0245, Z0317, Z0322, Z0327, Z0342, Z0585, Z0705,
+                  Z0713, Z0714]
+
+# Standard-Nachtset (Berichtswesen-Automatikfunktion). report_freshness warnt, wenn
+# eine dieser Listen fehlt oder älter als stale_after_hours ist.
+nightly_set: [Z0015, Z0016, Z0051, Z0125, Z0127, Z0165, Z0245, Z0327]
+
+# --- Sperrzeiten -------------------------------------------------------------
+timezone: Europe/Berlin
+# In diesen Zeitfenstern wird NIE eine Liste erzeugt (Nachtjob / Datensicherung).
+# Tage: Mo Di Mi Do Fr Sa So. Fenster über Mitternacht sind erlaubt.
+blocked_windows:
+  - name: Nachtjob/Datensicherung
+    days: [Mo, Di, Mi, Do, Fr, Sa, So]
+    start: '22:00'
+    end: '05:30'
+# Während der Öffnungszeiten nur mit force_during_opening=true.
+opening_hours:
+  enabled: true
+  days: [Mo, Di, Mi, Do, Fr, Sa]
+  start: '10:00'
+  end: '20:00'
+
+# --- Grenzen -----------------------------------------------------------------
+job_timeout_min: 20        # So lange darf ein Erzeugungsauftrag dauern.
+stale_after_hours: 36      # Ältere Exporte gelten als veraltet.
+max_rows_returned: 500     # Höchstens so viele Zeilen gehen an Claude.
+ingest_wait_sec: 300       # ingest_export wartet max. 5 Minuten auf die Datei.
+default_period_days: 30    # Zeitraum, wenn keiner angegeben ist.
+
+# --- Kommandozeile (CLI) -----------------------------------------------------
+cli:
+  enabled: true
+  # Optional: bekannte Kommandozeile (z. B. vom NOVENTI-Support), als Liste.
+  # Platzhalter: {z_code} {date_from} {date_to} {output_file} (Daten als TT.MM.JJJJ)
+  # Beispiel: ['C:\PROKAS7\bw\bwbatch.cmd', '{z_code}', '{date_from}', '{date_to}', '{output_file}']
+  template: null
+  test_z_code: Z0327       # Harmlose Prüfliste für den Test.
+  timeout_sec: 300
+  max_failures: 3          # Danach "failed", bis probe_cli(force=true).
+
+# --- Datenschutz -------------------------------------------------------------
+# Spalten, deren Name hierauf passt, verlassen den Server NIE – auch wenn sie
+# im Mapping stehen. (Groß-/Kleinschreibung egal, Treffer am Wortanfang.)
+denylist_patterns:
+  - Name
+  - Vorname
+  - Kunde
+  - Geb
+  - Adresse
+  - Straße
+  - Strasse
+  - PLZ
+  - Telefon
+  - Tel\b
+  - Mail
+  - Versicherten
+  - Arzt
+  - Rezept-?ID
+  - Patient
+  - IBAN
+  - BIC
+  - Bearbeiter
+  - Mitarbeiter
+  - Benutzer
+
+# --- Vorschläge (Staging) ---------------------------------------------------
+default_vat_pct: 19        # MwSt. für Spannenrechnung, wenn die Liste keine nennt.
+price_rounding_step: 0.05  # VK-Vorschläge auf 5 Cent aufrunden.
+price_file_header: true    # Kopfzeile "PZN;Preis" in Preisdateien.

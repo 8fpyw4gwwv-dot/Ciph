@@ -1,0 +1,6 @@
+easyApotheke im Nedderfeld Center – Berichtswesen
+Liste Z0134
+Berichtszeitraum: 01.10.2026 - 27.10.2026
+
+PZN	Artikelbezeichnung	PG	Anbieter	Listen-EK	VEK	VK	Eigener Listen-EK
+10554337	Eigenherstellung	100 ml	Apotheke	0,00	0,00	8,50	N
