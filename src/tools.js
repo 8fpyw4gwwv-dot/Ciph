@@ -246,6 +246,31 @@ export function createServer(cfg) {
       return currentAccount.run(acc, () => handler(args, extra));
     });
 
+  server.registerTool(
+    "list_accounts",
+    {
+      description: "Show which mailboxes are connected (email address, login, server) and whether each one can log in right now.",
+      inputSchema: {},
+      annotations: { readOnlyHint: true },
+    },
+    async () =>
+      text(
+        await Promise.all(
+          config.accounts.map(async (acc, i) => ({
+            email: acc.id,
+            from: acc.from,
+            login: acc.user,
+            server: acc.imap.host,
+            default: i === 0,
+            inbox: await currentAccount
+              .run(acc, () => withImap((client) => client.status("INBOX", { messages: true, unseen: true })))
+              .then(({ messages, unseen }) => ({ messages, unread: unseen }))
+              .catch((err) => ({ error: err.responseText || err.message })),
+          })),
+        ),
+      ),
+  );
+
 
   register(
     "list_folders",

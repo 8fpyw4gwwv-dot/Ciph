@@ -8,6 +8,7 @@ Apple doesn't let anything plug into the iPhone Mail app directly. This connecto
 
 | Tool | What it does |
 | --- | --- |
+| `list_accounts` | Shows which mailboxes are connected and whether each can log in right now |
 | `list_folders` | Lists folders with total and unread counts |
 | `search_messages` | Searches one folder or all folders by sender, recipient, subject, body text, date range, unread or flagged. Up to 200 results per page, with `offset` for further pages |
 | `get_message` | Reads a full message: headers, body (HTML-only mail converted to text) and a numbered attachment list. Can mark it read |
