@@ -291,7 +291,7 @@ function readEnvFile() {
   if (!fs.existsSync(file)) return {};
   const values = {};
   for (const line of fs.readFileSync(file, "utf8").split(/\r?\n/)) {
-    const m = line.match(/^([A-Z_]+)=(['"`])(.*)\2$/);
+    const m = line.match(/^([A-Z0-9_]+)=(['"`])(.*)\2$/);
     if (m) values[m[1]] = m[3];
   }
   return values;
@@ -514,22 +514,75 @@ async function verifiedMailbox(found) {
   }
 }
 
+// Mailboxes saved by an earlier run (in .env, or in Claude Desktop's config), so a new run adds to them.
+function existingMailboxes() {
+  let env = {};
+  if (remote) {
+    env = readEnvFile();
+  } else if (fs.existsSync(claudeConfigPath)) {
+    try {
+      env = JSON.parse(fs.readFileSync(claudeConfigPath, "utf8")).mcpServers?.email?.env || {};
+    } catch {}
+  }
+  const list = [];
+  for (let n = 1; n <= 9; n++) {
+    const mail = n === 1 ? "MAIL_" : `MAIL${n}_`;
+    const server = n === 1 ? "" : `MAIL${n}_`;
+    const get = (p, k) => env[p + k];
+    if (!get(mail, "USER") || !get(mail, "PASSWORD") || !get(server, "IMAP_HOST")) continue;
+    const from = get(mail, "FROM") || get(mail, "USER");
+    const [, name, address] = from.match(/^\s*(.*?)\s*<([^>]+)>\s*$/) || [null, "", from.trim()];
+    list.push({
+      password: get(mail, "PASSWORD"),
+      acc: {
+        email: address,
+        fullName: name || undefined,
+        user: get(mail, "USER"),
+        imapHost: get(server, "IMAP_HOST"),
+        imapPort: Number(get(server, "IMAP_PORT") || 993),
+        imapSecure: get(server, "IMAP_SECURE") !== "false",
+        smtpHost: get(server, "SMTP_HOST"),
+        smtpPort: Number(get(server, "SMTP_PORT") || 465),
+        smtpSecure: get(server, "SMTP_SECURE") ? get(server, "SMTP_SECURE") === "true" : Number(get(server, "SMTP_PORT") || 465) === 465,
+      },
+    });
+  }
+  return list;
+}
+
+const yes = async (question, byDefault) => {
+  const answer = (await ask(question)).trim().toLowerCase();
+  return answer ? ["y", "yes", "j", "ja"].includes(answer) : byDefault;
+};
+
 async function main() {
   console.log(remote ? "Always-on mail connector setup\n" : "Mail connector setup for Claude Desktop\n");
 
-  const found = await thunderbirdAccounts();
-  const mailboxes = [];
-  for (;;) {
+  let mailboxes = [];
+  const existing = existingMailboxes();
+  if (existing.length) {
+    console.log("Mailboxes already connected:");
+    for (const m of existing) console.log(`  - ${m.acc.email}`);
+    if (await yes("Keep them? [Y/n] ", true)) mailboxes = existing;
+  }
+
+  let found;
+  let adding = mailboxes.length === 0 || (await yes("\nAdd a mailbox now? [y/N] ", false));
+  while (adding) {
+    found ??= await thunderbirdAccounts();
     const mailbox = await verifiedMailbox(found);
     if (mailbox) {
-      if (mailboxes.some((m) => m.acc.email.toLowerCase() === mailbox.acc.email.toLowerCase())) {
-        console.log("That mailbox is already added.");
+      const same = mailboxes.findIndex((m) => m.acc.email.toLowerCase() === mailbox.acc.email.toLowerCase());
+      if (same >= 0) {
+        mailboxes[same] = mailbox;
+        console.log("Updated the settings of that mailbox.");
       } else {
         mailboxes.push(mailbox);
       }
     }
-    if (!mailboxes.length) break;
-    if ((await ask(`\nAdd another mailbox (e.g. a team or personal address)? [y/N] `)).toLowerCase() !== "y") break;
+    if (mailboxes.length >= 9) break;
+    console.log(`\nConnected so far: ${mailboxes.map((m) => m.acc.email).join(", ") || "none"}`);
+    adding = await yes("Add another mailbox (e.g. team, personal or invoices address)? [y/N] ", mailboxes.length === 0);
   }
 
   if (!mailboxes.length) {

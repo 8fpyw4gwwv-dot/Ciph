@@ -1,6 +1,6 @@
 {
   "name": "imap-mail-mcp",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "MCP connector for any IMAP/SMTP mail account, for Claude Desktop or always-on for claude.ai and the Claude mobile apps",
   "type": "module",
   "bin": {

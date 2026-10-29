@@ -82,6 +82,7 @@ Double-click `check-connector-windows.bat`. It tests each step (background servi
 
 ### Maintenance
 
+- Add or change a mailbox: run `setup-always-on-windows.bat` as administrator again. It lists the mailboxes already connected and keeps them; answer `y` to add one. Entering an existing address again updates its login or password.
 - Log: `data\connector.log`
 - Restart: Task Scheduler → **Claude Mail Connector** → End, then Run (or restart the computer)
 - Update: unzip the new version over the folder, then run `setup-always-on-windows.bat` as administrator again and keep your connector password
